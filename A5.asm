@@ -1,0 +1,257 @@
+	org 	0000h
+
+    dseg    	at      30h
+    BCNT: 		ds      1
+    WTEMP0:	 	ds      1
+    WTEMP1:	 	ds      1
+    WSUM0:	 	ds      1
+    WSUM1:	 	ds      1
+    BTEMP0: 	ds      1
+    BTEMP1: 	ds      1
+	BTEMP2:		DS		1
+	BTEMP3:		DS		1
+    BDispBuf0: 	ds      1
+    BDispBuf1: 	ds      1
+    BDispBuf2: 	ds      1
+    BDispBuf3: 	ds      1
+    BDispBuf4: 	ds      1
+    BDispBuf5: 	ds      1
+	BMux:		DS		1
+	BSel:		DS		1
+
+	SEVSEL		EQU	0FFC8h
+	SEVDATA		EQU	0FFC9h
+
+	cseg    at      0000h
+
+	MOV	WTEMP0,#99H
+	MOV	WTEMP1,#99H
+
+	MOV	A,WTEMP0
+	ANL	A,#0FH
+	MOV	BTEMP0,A
+	MOV	A,WTEMP0
+	SWAP	A
+	ANL	A,#0FH
+	MOV	BTEMP1,A
+
+	MOV	A,WTEMP1
+	ANL	A,#0FH
+	MOV	BTEMP2,A
+	MOV	A,WTEMP1
+	SWAP	A
+	ANL	A,#0FH
+	MOV	BTEMP3,A
+
+	MOV	WSUM0,BTEMP3
+	MOV	WSUM1,#00H
+
+	CALL	MULTEN
+
+	MOV	A,WSUM0
+	ADD	A,BTEMP2
+	MOV	WSUM0,A
+
+	MOV	A,WSUM1
+	ADDC	A,#00H
+	MOV	WSUM1,A
+	
+	CALL	MULTEN
+
+	MOV	A,WSUM0
+	ADD	A,BTEMP1
+	MOV	WSUM0,A
+
+	MOV	A,WSUM1
+	ADDC	A,#00H
+	MOV	WSUM1,A
+	
+	CALL	MULTEN
+
+	MOV	A,WSUM0
+	ADD	A,BTEMP0
+	MOV	WSUM0,A
+
+	MOV	A,WSUM1
+	ADDC	A,#00H
+	MOV	WSUM1,A
+
+
+	MOV	BMux,#00H
+	MOV	BSeL,#11111110B
+
+	MOV	A,WSUM0
+	ANL	A,#0FH
+	CALL	DECODE
+	MOV     BDispBuf0,A
+
+	MOV	A,WSUM0
+	SWAP	A
+	ANL	A,#0FH
+	CALL	DECODE
+	MOV     BDispBuf1,A
+
+	MOV	A,WSUM1
+	ANL	A,#0FH
+	CALL	DECODE
+	MOV     BDispBuf2,A
+
+	MOV	A,WSUM1
+	SWAP	A
+	ANL	A,#0FH
+	CALL	DECODE
+	MOV     BDispBuf3,A
+
+	MOV	A,#00H
+	CALL	DECODE
+	MOV     BDispBuf4,A
+
+	MOV	A,#00H
+	CALL	DECODE
+	MOV     BDispBuf5,A
+
+
+
+loop:	MOV	dptr,#SEVSEL
+	MOV	A,BSeL
+	MOVX	@dptr,A
+
+	MOV	dptr,#SEVDATA
+	MOV	A,BDispBuf0
+	MOVX	@dptr,A
+
+	CALL	DELAY
+	
+	MOV	A,BSeL
+	RL	A
+	MOV	BSeL,A
+
+
+
+
+	MOV	dptr,#SEVSEL
+	MOV	A,BSeL
+	MOVX	@dptr,A
+
+	MOV	dptr,#SEVDATA
+	MOV	A,BDispBuf1
+	MOVX	@dptr,A
+
+	CALL	DELAY
+	
+	MOV	A,BSeL
+	RL	A
+	MOV	BSeL,A
+
+
+
+
+
+	MOV	dptr,#SEVSEL
+	MOV	A,BSeL
+	MOVX	@dptr,A
+
+	MOV	dptr,#SEVDATA
+	MOV	A,BDispBuf2
+	MOVX	@dptr,A
+
+	CALL	DELAY
+	
+	MOV	A,BSeL
+	RL	A
+	MOV	BSeL,A
+
+
+
+
+	MOV	dptr,#SEVSEL
+	MOV	A,BSeL
+	MOVX	@dptr,A
+
+	MOV	dptr,#SEVDATA
+	MOV	A,BDispBuf3
+	MOVX	@dptr,A
+
+	CALL	DELAY
+	
+	MOV	A,BSeL
+	RL	A
+	MOV	BSeL,A
+
+
+
+
+	MOV	dptr,#SEVSEL
+	MOV	A,BSeL
+	MOVX	@dptr,A
+
+	MOV	dptr,#SEVDATA
+	MOV	A,BDispBuf4
+	MOVX	@dptr,A
+
+	CALL	DELAY
+	
+	MOV	A,BSeL
+	RL	A
+	MOV	BSeL,A
+
+
+
+
+	MOV	dptr,#SEVSEL
+	MOV	A,BSeL
+	MOVX	@dptr,A
+
+	MOV	dptr,#SEVDATA
+	MOV	A,BDispBuf5
+	MOVX	@dptr,A
+
+	CALL	DELAY
+	
+	MOV	BSeL,#11111110B
+
+ 	sjmp	LOOP
+
+DELAY:	mov 	R5,#1
+L1:	mov	R6,#8
+L2:	mov	R7,#200
+L3:	NOP
+	NOP
+	DJNZ	R7,L3
+	DJNZ	R6,L2
+	DJNZ	R5,L1
+	ret
+DECODE:
+	MOV	DPTR,#TABLE
+	MOVC	A,@A+DPTR
+	RET
+TABLE:	DB	3FH
+	DB	06H
+	DB	5BH
+	DB	4FH
+	DB	66H
+	DB	6DH
+	DB	7DH
+	DB	07H
+	DB	7FH
+	DB	6FH
+	DB	77H
+	DB	7CH
+	DB	39H
+	DB	5EH
+	DB	79H
+	DB	71H
+
+MULTEN:	MOV	A,WSUM0
+	MOV	B,#0AH
+	MUL	AB
+	MOV	WSUM0,A
+	MOV	R0,B
+	MOV	A,WSUM1
+	MOV	B,#0AH
+	MUL	AB
+	ADD	A,R0
+	MOV	WSUM1,A
+	RET
+	
+END

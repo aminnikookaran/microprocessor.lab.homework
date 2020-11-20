@@ -1,0 +1,100 @@
+	org 	0000h
+
+	SEVSEL	EQU	0FFC8h
+	SEVDATA	EQU	0FFC9h
+
+
+loop:	MOV	R0, #21H
+	MOV	R1, #43H
+
+
+	; 4
+	MOV	dptr,#SEVSEL
+	MOV	A,#11011111B
+	MOVX	@dptr,A
+
+	MOV	A, R1
+	SWAP	A
+	ANL	A, #0FH
+	CALL	DECODE
+
+	MOV	dptr,#SEVDATA
+	MOVX	@dptr,A
+
+	CALL DELAY
+
+	; 3
+	MOV	dptr,#SEVSEL
+	MOV	A,#11101111B
+	MOVX	@dptr,A
+
+	MOV	A, R1
+	ANL	A, #0FH
+	CALL	DECODE
+
+	MOV	dptr,#SEVDATA
+	MOVX	@dptr,A
+
+	CALL DELAY
+
+	; 2
+	MOV	dptr,#SEVSEL
+	MOV	A,#11110111B
+	MOVX	@dptr,A
+
+	MOV	A, R0
+	SWAP	A
+	ANL	A, #0FH
+	CALL	DECODE
+
+	MOV	dptr,#SEVDATA
+	MOVX	@dptr,A
+
+	CALL DELAY
+
+	; 1
+	MOV	dptr,#SEVSEL
+	MOV	A,#11111011B
+	MOVX	@dptr,A
+
+	MOV	A, R0
+	ANL	A, #0FH
+	CALL	DECODE
+
+	MOV	dptr,#SEVDATA
+	MOVX	@dptr,A
+	call	delay
+
+ 	sjmp	LOOP
+
+DELAY:	mov 	R5,#1
+L1:	mov	R6,#8
+L2:	mov	R7,#200
+L3:	NOP
+	NOP
+	DJNZ	R7,L3
+	DJNZ	R6,L2
+	DJNZ	R5,L1
+	ret
+DECODE:
+	MOV	DPTR,#TABLE
+	MOVC	A,@A+DPTR
+	RET
+TABLE:	db	3FH
+	DB	06H
+	DB	5BH
+	DB	4FH
+	DB	66H
+	DB	6DH
+	DB	7DH
+	DB	07H
+	DB	7FH
+	DB	6FH
+	DB	77H
+	DB	7CH
+	DB	39H
+	DB	5EH
+	DB	79H
+	DB	71H
+
+END
